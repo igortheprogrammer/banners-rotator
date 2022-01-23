@@ -34,4 +34,8 @@ ARG CONFIG_FILE_NAME
 ENV CONFIG_FILE /etc/rotator/${CONFIG_FILE_NAME}.yaml
 COPY ./configs/${CONFIG_FILE_NAME}.yaml ${CONFIG_FILE}
 
-CMD ${BIN_FILE} -config ${CONFIG_FILE}
+ENV WAIT_VERSION 2.9.0
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/$WAIT_VERSION/wait /wait
+RUN chmod +x /wait
+
+CMD /wait && ${BIN_FILE} -config ${CONFIG_FILE}
