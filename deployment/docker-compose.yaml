@@ -40,6 +40,6 @@ services:
       - POSTGRES_PASSWORD=qwerty
       - POSTGRES_DB=rotator
     volumes:
-      - ./migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - postgres
