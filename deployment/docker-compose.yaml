@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  rotator:
+    build:
+      context: ../
+      dockerfile: ./deployment/Dockerfile
+      args:
+        - CONFIG_FILE_NAME=config
+    container_name: rotator
+    restart: on-failure
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    expose:
+      - 8080
+      - 8081
