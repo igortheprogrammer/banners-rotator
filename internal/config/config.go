@@ -13,6 +13,7 @@ type AppConfig struct {
 	Logger  LoggerConf  `yaml:"logger"`
 	Api     ApiConf     `yaml:"api"`
 	Storage StorageConf `yaml:"storage"`
+	Rmq     RmqConf     `yaml:"rmq"`
 }
 
 type LoggerConf struct {
@@ -20,13 +21,18 @@ type LoggerConf struct {
 }
 
 type ApiConf struct {
-	Host     string `yaml:"host"`
-	Port     string `yaml:"port"`
+	Host string `yaml:"host"`
+	Port string `yaml:"port"`
 }
 
 type StorageConf struct {
 	Type             string `yaml:"type"`
 	ConnectionString string `yaml:"connectionString"`
+}
+
+type RmqConf struct {
+	Uri  string `yaml:"uri"`
+	Name string `yaml:"name"`
 }
 
 var ErrUnreadableConfig = errors.New("unreadable config")

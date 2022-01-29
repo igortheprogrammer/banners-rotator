@@ -3,10 +3,12 @@ module banners-rotator
 go 1.17
 
 require (
+	github.com/google/uuid v1.3.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
 	github.com/spf13/viper v1.10.1
+	github.com/streadway/amqp v1.0.0
 	github.com/stretchr/testify v1.7.0
 	go.uber.org/zap v1.20.0
 	google.golang.org/grpc v1.43.0

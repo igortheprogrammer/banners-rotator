@@ -30,13 +30,16 @@ lint: install-lint-deps
 	golangci-lint run ./...
 
 up:
-	docker-compose -f ./deployment/docker-compose.yaml up
+	docker-compose -f ./deployment/docker-compose.yaml -p rotator up
 
 down:
-	docker-compose -f ./deployment/docker-compose.yaml down
+	docker-compose -f ./deployment/docker-compose.yaml -p rotator down
 
 rebuild:
-	docker-compose -f ./deployment/docker-compose.yaml up --build
+	docker-compose -f ./deployment/docker-compose.yaml -p rotator up --build
+
+up-i:
+	docker-compose -f ./deployment/docker-compose.yaml -p rotator up postgres rabbit
 
 generate:
 	mkdir -p internal/server/bannersrotatorpb

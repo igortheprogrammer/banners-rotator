@@ -3,6 +3,8 @@ version: "3"
 networks:
   postgres:
     driver: bridge
+  rabbit:
+    driver: bridge
 
 services:
   rotator:
@@ -13,7 +15,7 @@ services:
         - CONFIG_FILE_NAME=config
     container_name: rotator
     environment:
-      WAIT_HOSTS: postgres:5432
+      WAIT_HOSTS: postgres:5432, rabbit:5672
     restart: on-failure
     ports:
       - "8080:8080"
@@ -22,8 +24,10 @@ services:
       - 8081
     depends_on:
       - postgres
+      - rabbit
     networks:
       - postgres
+      - rabbit
 
   postgres:
     image: postgres:latest
@@ -42,3 +46,16 @@ services:
       - ../migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - postgres
+
+  rabbit:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbit
+    container_name: rabbit
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - 15672
+    restart: always
+    networks:
+      - rabbit

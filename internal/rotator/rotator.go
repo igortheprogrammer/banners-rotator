@@ -1,6 +1,7 @@
 package rotator
 
 import (
+	"banners-rotator/internal/rmq"
 	"banners-rotator/internal/storage"
 	"fmt"
 	"strings"
@@ -22,6 +23,7 @@ type App interface {
 
 type Rotator struct {
 	storage Storage
+	p       *rmq.Producer
 }
 
 type Logger interface {
@@ -42,8 +44,8 @@ type Storage interface {
 	CreateClickEvent(slotID, bannerID, groupID, date int64) error
 }
 
-func NewApp(s Storage) App {
-	return &Rotator{storage: s}
+func NewApp(s Storage, producer *rmq.Producer) App {
+	return &Rotator{storage: s, p: producer}
 }
 
 func (r *Rotator) CreateSlot(description string) (storage.Slot, error) {
@@ -73,7 +75,17 @@ func (r *Rotator) CreateViewEvent(slotID, bannerID, groupID int64) error {
 		return fmt.Errorf("rotator -> create view event -> %w", err)
 	}
 
-	// TODO: send to RMQ
+	err = r.p.Publish(rmq.QMessage{
+		Type:     "view",
+		SlotID:   slotID,
+		BannerID: bannerID,
+		GroupID:  groupID,
+		Date:     date,
+	})
+	if err != nil {
+		return fmt.Errorf("rotator -> publish view event -> %w", err)
+	}
+
 	return nil
 }
 
@@ -84,7 +96,17 @@ func (r *Rotator) CreateClickEvent(slotID, bannerID, groupID int64) error {
 		return fmt.Errorf("rotator -> create view event -> %w", err)
 	}
 
-	// TODO: send to RMQ
+	err = r.p.Publish(rmq.QMessage{
+		Type:     "click",
+		SlotID:   slotID,
+		BannerID: bannerID,
+		GroupID:  groupID,
+		Date:     date,
+	})
+	if err != nil {
+		return fmt.Errorf("rotator -> publish click event -> %w", err)
+	}
+
 	return nil
 }
 

@@ -3,6 +3,7 @@ package main
 import (
 	"banners-rotator/internal/config"
 	"banners-rotator/internal/logger"
+	"banners-rotator/internal/rmq"
 	"banners-rotator/internal/rotator"
 	internalgrpc "banners-rotator/internal/server/grpc"
 	sqlstorage "banners-rotator/internal/storage/sql"
@@ -12,6 +13,8 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/streadway/amqp"
 )
 
 var configFile string
@@ -46,7 +49,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	app := rotator.NewApp(s)
+	conn, err := amqp.Dial(cfg.Rmq.Uri)
+	if err != nil {
+		logg.Error(err.Error())
+		cancel()
+		os.Exit(1)
+	}
+
+	p := rmq.NewRMQProducer(cfg.Rmq.Name, conn)
+	err = p.Connect()
+	if err != nil {
+		logg.Error(err.Error())
+		cancel()
+		os.Exit(1)
+	}
+
+	app := rotator.NewApp(s, p)
 	srv := internalgrpc.NewRPCServer(logg, app, cfg.Api.Host, cfg.Api.Port)
 
 	go func() {
@@ -68,12 +86,12 @@ func main() {
 func getStorage(ctx context.Context, cfg config.AppConfig) (rotator.Storage, error) {
 	storage, err := sqlstorage.NewStorage(ctx, cfg.Storage.ConnectionString)
 	if err != nil {
-		return nil, fmt.Errorf("get storage: %w", err)
+		return nil, fmt.Errorf("get storage -> %w", err)
 	}
 
 	err = storage.Connect(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("get storage: %w", err)
+		return nil, fmt.Errorf("get storage -> %w", err)
 	}
 
 	return storage, nil
