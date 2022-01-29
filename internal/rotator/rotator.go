@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type App interface {
@@ -15,7 +17,7 @@ type App interface {
 	DeleteRotation(slotID, bannerID int64) error
 	CreateViewEvent(slotID, bannerID, groupID int64) error
 	CreateClickEvent(slotID, bannerID, groupID int64) error
-	BannerForSlot(slotID, groupID int64) (int64, error)
+	BannerForSlot(slotID, groupID int64) (storage.Banner, error)
 }
 
 type Rotator struct {
@@ -27,6 +29,7 @@ type Logger interface {
 	Info(msg string, values ...interface{})
 	Warn(msg string, values ...interface{})
 	Error(msg string, values ...interface{})
+	Lgr() *zap.Logger
 }
 
 type Storage interface {
@@ -85,12 +88,12 @@ func (r *Rotator) CreateClickEvent(slotID, bannerID, groupID int64) error {
 	return nil
 }
 
-func (r *Rotator) BannerForSlot(slotID, groupID int64) (int64, error) {
+func (r *Rotator) BannerForSlot(slotID, groupID int64) (storage.Banner, error) {
 	bannerID := int64(0)
 	err := r.CreateViewEvent(slotID, bannerID, groupID)
 	if err != nil {
-		return 0, fmt.Errorf("rotator -> banner for slot -> %w", err)
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
 	}
 
-	return 0, err
+	return storage.Banner{}, err
 }

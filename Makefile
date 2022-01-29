@@ -37,3 +37,10 @@ down:
 
 rebuild:
 	docker-compose -f ./deployment/docker-compose.yaml up --build
+
+generate:
+	mkdir -p internal/server/bannersrotatorpb
+	protoc -I ./api \
+    --go_out ./internal/server/bannersrotatorpb/ --go_opt paths=source_relative \
+    --go-grpc_out ./internal/server/bannersrotatorpb/ --go-grpc_opt paths=source_relative \
+    api/*.proto

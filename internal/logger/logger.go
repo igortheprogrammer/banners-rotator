@@ -68,3 +68,6 @@ func (l *Logger) Error(msg string, values ...interface{}) {
 	l.lgr.Sugar().Errorw(msg, values...)
 }
 
+func (l *Logger) Lgr() *zap.Logger {
+	return l.lgr
+}

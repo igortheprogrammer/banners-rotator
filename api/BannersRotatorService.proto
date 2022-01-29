@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package bannersrotator;
+
+option go_package = "./;bannersrotatorpb";
+
+message Message {
+  string message = 1;
+}
+
+message Slot {
+  int64 id = 1;
+  string description = 2;
+}
+
+message Banner {
+  int64 id = 1;
+  string description = 2;
+}
+
+message Group {
+  int64 id = 1;
+  string description = 2;
+}
+
+message Rotation {
+  int64 slot_id = 1;
+  int64 banner_id = 2;
+}
+
+message ClickEvent {
+  int64 slot_id = 1;
+  int64 banner_id = 2;
+  int64 group_id = 3;
+}
+
+message SlotRequest {
+  int64 slot_id = 1;
+  int64 group_id = 2;
+}
+
+service BannersRotator {
+  rpc CreateSlot(Slot) returns (Slot) {}
+  rpc CreateBanner(Banner) returns (Banner) {}
+  rpc CreateGroup(Group) returns (Group) {}
+  rpc CreateRotation(Rotation) returns (Message) {}
+  rpc DeleteRotation(Rotation) returns (Message) {}
+  rpc CreateClickEvent(ClickEvent) returns (Message) {}
+  rpc BannerForSlot(SlotRequest) returns (Banner) {}
+}

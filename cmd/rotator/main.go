@@ -4,6 +4,7 @@ import (
 	"banners-rotator/internal/config"
 	"banners-rotator/internal/logger"
 	"banners-rotator/internal/rotator"
+	internalgrpc "banners-rotator/internal/server/grpc"
 	sqlstorage "banners-rotator/internal/storage/sql"
 	"context"
 	"flag"
@@ -45,7 +46,23 @@ func main() {
 		os.Exit(1)
 	}
 
-	_ = rotator.NewApp(s)
+	app := rotator.NewApp(s)
+	srv := internalgrpc.NewRPCServer(logg, app, cfg.Api.Host, cfg.Api.Port)
+
+	go func() {
+		<-ctx.Done()
+		srv.Stop()
+	}()
+
+	logg.Info("rotator is running...")
+
+	if err := srv.Start(); err != nil {
+		logg.Error("failed to start grpc server: " + err.Error())
+		cancel()
+		os.Exit(1)
+	}
+
+	defer cancel()
 }
 
 func getStorage(ctx context.Context, cfg config.AppConfig) (rotator.Storage, error) {

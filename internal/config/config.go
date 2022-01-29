@@ -22,7 +22,6 @@ type LoggerConf struct {
 type ApiConf struct {
 	Host     string `yaml:"host"`
 	Port     string `yaml:"port"`
-	GrpcPort string `yaml:"grpcPort"`
 }
 
 type StorageConf struct {
