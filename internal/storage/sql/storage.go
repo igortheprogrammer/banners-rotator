@@ -105,7 +105,7 @@ func (s *Storage) CreateRotation(slotID, bannerID int64) error {
 }
 
 func (s *Storage) DeleteRotation(slotID, bannerID int64) error {
-	_, err := s.store.Exec(
+	r, err := s.store.Exec(
 		"DELETE FROM rotations WHERE slot_id=$1 AND banner_id=$2;",
 		slotID, bannerID,
 	)
@@ -114,6 +114,12 @@ func (s *Storage) DeleteRotation(slotID, bannerID int64) error {
 			"storage -> delete rotation -> %w (%s)",
 			storage.ErrRotationNotDeleted,
 			err,
+		)
+	}
+	if count, err := r.RowsAffected(); err != nil || count == 0 {
+		return fmt.Errorf(
+			"storage -> delete rotation -> %w (not found)",
+			storage.ErrRotationNotDeleted,
 		)
 	}
 
