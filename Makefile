@@ -7,21 +7,8 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/rotator
 
-run: build
-	$(BIN) -config ./configs/config.yaml
-
-build-img:
-	docker build \
-		--build-arg=LDFLAGS="$(LDFLAGS)" \
-		--build-arg=CONFIG_FILE_NAME=config \
-		-t $(DOCKER_IMG) \
-		-f ./deployment/Dockerfile .
-
-run-img: build-img
-	docker run $(DOCKER_IMG)
-
 test:
-	go test -race -count=1 ./internal/...
+	go test -race -count=100 ./internal/...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.41.1
@@ -29,21 +16,28 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./...
 
-up:
-	docker-compose -f ./deployment/docker-compose.yaml -p rotator up
+run:
+	docker-compose -f ./deployment/docker-compose.yaml -p rotator up --build
 
-down:
+stop:
 	docker-compose -f ./deployment/docker-compose.yaml -p rotator down
 
-rebuild:
-	docker-compose -f ./deployment/docker-compose.yaml -p rotator up --build
+generate:
+	go generate ./...
 
 up-i:
 	docker-compose -f ./deployment/docker-compose.yaml -p rotator up postgres rabbit
 
-generate:
-	mkdir -p internal/server/bannersrotatorpb
-	protoc -I ./api \
-    --go_out ./internal/server/bannersrotatorpb/ --go_opt paths=source_relative \
-    --go-grpc_out ./internal/server/bannersrotatorpb/ --go-grpc_opt paths=source_relative \
-    api/*.proto
+integration-tests:
+	set -e ;\
+	docker-compose -f ./deployment/docker-compose.test.yml up --build -d ;\
+	test_status_code=0 ;\
+	docker-compose -f ./deployment/docker-compose.test.yml run integration_tests go test -v || test_status_code=$$? ;\
+	docker-compose -f ./deployment/docker-compose.test.yml down \
+    --rmi local \
+		--volumes \
+		--remove-orphans \
+		--timeout 60; \
+	exit $$test_status_code ;
+
+.PHONY: build test install-lint-deps lint run stop generate up-i integration-tests

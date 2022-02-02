@@ -1,3 +1,7 @@
+//go:generate mkdir -p ../bannersrotatorpb
+//go:generate protoc -I ../../../api/ --go_out=../bannersrotatorpb/ ../../../api/BannersRotatorService.proto
+//go:generate protoc -I ../../../api/ --go-grpc_out=../bannersrotatorpb/ ../../../api/BannersRotatorService.proto
+
 package internalgrpc
 
 import (
