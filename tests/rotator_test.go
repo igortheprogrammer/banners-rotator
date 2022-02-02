@@ -1,42 +1,40 @@
 package integrationtests
 
 import (
+	"banners-rotator/internal/rmq"
 	gw "banners-rotator/internal/server/bannersrotatorpb"
 	"context"
 	"os"
 	"testing"
 	"time"
 
+	"github.com/streadway/amqp"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func getRotatorConnectionString() string {
-	const connectionString = "localhost:8080"
-	cs := os.Getenv("TESTS_ROTATOR_DSN")
-	if cs == "" {
-		return connectionString
-	}
+func TestRotator_RMQ(t *testing.T) {
+	t.Run("publish event", func(t *testing.T) {
+		conn, err := amqp.Dial(getRMQConnectionString())
+		require.NoError(t, err)
 
-	return cs
+		p := rmq.NewRMQProducer("rotator-test", conn)
+		err = p.Connect()
+		require.NoError(t, err)
+
+		err = p.Publish(rmq.QMessage{
+			Type:     "view",
+			SlotID:   1,
+			BannerID: 1,
+			GroupID:  1,
+			Date:     time.Now().Unix(),
+		})
+		require.NoError(t, err)
+	})
 }
 
-func getClient() (gw.BannersRotatorClient, error) {
-	conn, err := grpc.Dial(
-		getRotatorConnectionString(),
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	client := gw.NewBannersRotatorClient(conn)
-
-	return client, nil
-}
-
-func TestGrpcServer_CreateSlot(t *testing.T) {
+func TestRotator_CreateSlot(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -53,7 +51,7 @@ func TestGrpcServer_CreateSlot(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_CreateBanner(t *testing.T) {
+func TestRotator_CreateBanner(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -70,7 +68,7 @@ func TestGrpcServer_CreateBanner(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_CreateGroup(t *testing.T) {
+func TestRotator_CreateGroup(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -87,7 +85,7 @@ func TestGrpcServer_CreateGroup(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_CreateRotation(t *testing.T) {
+func TestRotator_CreateRotation(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -109,7 +107,7 @@ func TestGrpcServer_CreateRotation(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_DeleteRotation(t *testing.T) {
+func TestRotator_DeleteRotation(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -134,7 +132,7 @@ func TestGrpcServer_DeleteRotation(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_CreateClickEvent(t *testing.T) {
+func TestRotator_CreateClickEvent(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -158,7 +156,7 @@ func TestGrpcServer_CreateClickEvent(t *testing.T) {
 	})
 }
 
-func TestGrpcServer_BannerForSlot(t *testing.T) {
+func TestRotator_BannerForSlot(t *testing.T) {
 	client, err := getClient()
 	require.NoError(t, err)
 
@@ -186,4 +184,38 @@ func TestGrpcServer_BannerForSlot(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, banner.Id, result.Id)
 	})
+}
+
+func getRotatorConnectionString() string {
+	const connectionString = "localhost:8080"
+	cs := os.Getenv("TESTS_ROTATOR_DSN")
+	if cs == "" {
+		return connectionString
+	}
+
+	return cs
+}
+
+func getClient() (gw.BannersRotatorClient, error) {
+	conn, err := grpc.Dial(
+		getRotatorConnectionString(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	client := gw.NewBannersRotatorClient(conn)
+
+	return client, nil
+}
+
+func getRMQConnectionString() string {
+	const connectionString = "amqp://guest:guest@localhost:5672/"
+	cs := os.Getenv("TESTS_RMQ_DSN")
+	if cs == "" {
+		return connectionString
+	}
+
+	return cs
 }

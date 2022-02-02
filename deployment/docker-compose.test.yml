@@ -14,9 +14,11 @@ services:
     environment:
       TESTS_POSTGRES_DSN: host=postgres_test port=5432 user=postgres password=test dbname=postgres_test sslmode=disable
       TESTS_ROTATOR_DSN: rotator_test:8080
-      WAIT_HOSTS: postgres_test:5432
+      TESTS_RMQ_DSN: amqp://guest:guest@rabbit_test:5672/
+      WAIT_HOSTS: postgres_test:5432, rabbit_test:5672
     networks:
       - postgres_test
+      - rabbit_test
 
   postgres_test:
     image: postgres:latest
