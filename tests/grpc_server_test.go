@@ -41,7 +41,8 @@ func TestGrpcServer_CreateSlot(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create slot", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		_, err := client.CreateSlot(ctx, &gw.Slot{Description: ""})
 		require.Error(t, err)
@@ -57,7 +58,8 @@ func TestGrpcServer_CreateBanner(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create banner", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		_, err := client.CreateBanner(ctx, &gw.Banner{Description: ""})
 		require.Error(t, err)
@@ -73,7 +75,8 @@ func TestGrpcServer_CreateGroup(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create group", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		_, err := client.CreateGroup(ctx, &gw.Group{Description: ""})
 		require.Error(t, err)
@@ -89,7 +92,8 @@ func TestGrpcServer_CreateRotation(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create rotation", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		_, err := client.CreateRotation(ctx, &gw.Rotation{BannerId: -1, SlotId: -1})
 		require.Error(t, err)
@@ -110,7 +114,8 @@ func TestGrpcServer_DeleteRotation(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("delete rotation", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		_, err := client.DeleteRotation(ctx, &gw.Rotation{BannerId: -1, SlotId: -1})
 		require.Error(t, err)
@@ -134,7 +139,8 @@ func TestGrpcServer_CreateClickEvent(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create click event", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		slot, err := client.CreateSlot(ctx, &gw.Slot{Description: "test desc"})
 		require.NoError(t, err)
@@ -157,7 +163,8 @@ func TestGrpcServer_BannerForSlot(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("create click event", func(t *testing.T) {
-		ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
 
 		slot, err := client.CreateSlot(ctx, &gw.Slot{Description: "test desc"})
 		require.NoError(t, err)
