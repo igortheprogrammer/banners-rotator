@@ -225,3 +225,124 @@ func TestStorage_CreateClickEvent(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestStorage_NotViewedBanners(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	s := Storage{store: sqlxDB}
+
+	t.Run("not viewed banners", func(t *testing.T) {
+		mock.
+			ExpectQuery(regexp.QuoteMeta(
+				`SELECT *
+				FROM banners
+				WHERE id IN (
+					SELECT banner_id
+					FROM rotations
+					WHERE slot_id = $1
+						EXCEPT (SELECT banner_id FROM views WHERE slot_id = $1)
+				)`,
+			)).
+			WithArgs(1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "description"}).AddRow(1, "test 1"))
+		banners, err := s.NotViewedBanners(1)
+		require.NoError(t, err)
+		require.Len(t, banners, 1)
+	})
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestStorage_SlotBanners(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	s := Storage{store: sqlxDB}
+
+	t.Run("slot banners", func(t *testing.T) {
+		mock.
+			ExpectQuery(regexp.QuoteMeta(
+				`SELECT *
+				FROM banners
+				WHERE id IN (
+					SELECT banner_id
+					FROM rotations
+					WHERE slot_id = $1
+				)`,
+			)).
+			WithArgs(1).
+			WillReturnRows(sqlmock.NewRows([]string{"id", "description"}).AddRow(1, "test 1"))
+		banners, err := s.SlotBanners(1)
+		require.NoError(t, err)
+		require.Len(t, banners, 1)
+	})
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestStorage_SlotViews(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	s := Storage{store: sqlxDB}
+
+	t.Run("slot views", func(t *testing.T) {
+		mock.
+			ExpectQuery(regexp.QuoteMeta(
+				`SELECT * FROM views WHERE slot_id= $1`,
+			)).
+			WithArgs(1).
+			WillReturnRows(
+				sqlmock.
+					NewRows([]string{"slot_id", "banner_id", "group_id", "date"}).
+					AddRow(1, 1, 1, 1),
+			)
+		views, err := s.SlotViews(1)
+		require.NoError(t, err)
+		require.Len(t, views, 1)
+	})
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestStorage_SlotClicks(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	defer db.Close()
+
+	sqlxDB := sqlx.NewDb(db, "sqlmock")
+	s := Storage{store: sqlxDB}
+
+	t.Run("slot clicks", func(t *testing.T) {
+		mock.
+			ExpectQuery(regexp.QuoteMeta(
+				`SELECT * FROM clicks WHERE slot_id= $1`,
+			)).
+			WithArgs(1).
+			WillReturnRows(
+				sqlmock.
+					NewRows([]string{"slot_id", "banner_id", "group_id", "date"}).
+					AddRow(1, 1, 1, 1),
+			)
+		views, err := s.SlotClicks(1)
+		require.NoError(t, err)
+		require.Len(t, views, 1)
+	})
+
+	if err = mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}

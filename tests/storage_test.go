@@ -243,3 +243,164 @@ func TestStorage_CreateClickEvent(t *testing.T) {
 		require.ErrorIs(t, err, storage.ErrClickEventNotCreated)
 	})
 }
+
+func TestStorage_NotViewedBanners(t *testing.T) {
+	s, err := sqlstorage.NewStorage(context.Background(), getConnectionString())
+	require.NoError(t, err)
+	err = s.Connect(context.Background())
+	require.NoError(t, err)
+	err = clearStorage(s)
+	require.NoError(t, err)
+	defer s.Close()
+
+	t.Run("not viewed banners", func(t *testing.T) {
+		desc := uuid.NewString()
+
+		slot, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		banner, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		group, err := s.CreateGroup(desc)
+		require.NoError(t, err)
+		err = s.CreateRotation(slot.ID, banner.ID)
+		require.NoError(t, err)
+		date := time.Now().Unix()
+		err = s.CreateViewEvent(slot.ID, banner.ID, group.ID, date)
+		require.NoError(t, err)
+
+		banners, err := s.NotViewedBanners(slot.ID)
+		require.NoError(t, err)
+		require.Len(t, banners, 0)
+
+		banner2, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		err = s.CreateRotation(slot.ID, banner2.ID)
+		require.NoError(t, err)
+
+		banners, err = s.NotViewedBanners(slot.ID)
+		require.NoError(t, err)
+		require.Len(t, banners, 1)
+		require.Equal(t, banner2.ID, banners[0].ID)
+	})
+}
+
+func TestStorage_SlotBanners(t *testing.T) {
+	s, err := sqlstorage.NewStorage(context.Background(), getConnectionString())
+	require.NoError(t, err)
+	err = s.Connect(context.Background())
+	require.NoError(t, err)
+	err = clearStorage(s)
+	require.NoError(t, err)
+	defer s.Close()
+
+	t.Run("slot banners", func(t *testing.T) {
+		desc := uuid.NewString()
+
+		slot, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		slot2, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		banner, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		banner2, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		err = s.CreateRotation(slot.ID, banner.ID)
+		require.NoError(t, err)
+		err = s.CreateRotation(slot.ID, banner2.ID)
+		require.NoError(t, err)
+		err = s.CreateRotation(slot2.ID, banner2.ID)
+		require.NoError(t, err)
+
+		banners, err := s.SlotBanners(slot.ID)
+		require.NoError(t, err)
+		require.Len(t, banners, 2)
+
+		banners2, err := s.SlotBanners(slot2.ID)
+		require.NoError(t, err)
+		require.Len(t, banners2, 1)
+	})
+}
+
+func TestStorage_SlotViews(t *testing.T) {
+	s, err := sqlstorage.NewStorage(context.Background(), getConnectionString())
+	require.NoError(t, err)
+	err = s.Connect(context.Background())
+	require.NoError(t, err)
+	err = clearStorage(s)
+	require.NoError(t, err)
+	defer s.Close()
+
+	t.Run("slot views", func(t *testing.T) {
+		desc := uuid.NewString()
+
+		slot, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		slot2, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		banner, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		banner2, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		group, err := s.CreateGroup(desc)
+		require.NoError(t, err)
+		group2, err := s.CreateGroup(desc)
+		require.NoError(t, err)
+
+		err = s.CreateViewEvent(slot.ID, banner.ID, group.ID, time.Now().Unix())
+		require.NoError(t, err)
+		err = s.CreateViewEvent(slot.ID, banner2.ID, group.ID, time.Now().Unix())
+		require.NoError(t, err)
+		err = s.CreateViewEvent(slot2.ID, banner.ID, group2.ID, time.Now().Unix())
+		require.NoError(t, err)
+
+		views, err := s.SlotViews(slot.ID)
+		require.NoError(t, err)
+		require.Len(t, views, 2)
+
+		views2, err := s.SlotViews(slot2.ID)
+		require.NoError(t, err)
+		require.Len(t, views2, 1)
+	})
+}
+
+func TestStorage_SlotClicks(t *testing.T) {
+	s, err := sqlstorage.NewStorage(context.Background(), getConnectionString())
+	require.NoError(t, err)
+	err = s.Connect(context.Background())
+	require.NoError(t, err)
+	err = clearStorage(s)
+	require.NoError(t, err)
+	defer s.Close()
+
+	t.Run("slot clicks", func(t *testing.T) {
+		desc := uuid.NewString()
+
+		slot, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		slot2, err := s.CreateSlot(desc)
+		require.NoError(t, err)
+		banner, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		banner2, err := s.CreateBanner(desc)
+		require.NoError(t, err)
+		group, err := s.CreateGroup(desc)
+		require.NoError(t, err)
+		group2, err := s.CreateGroup(desc)
+		require.NoError(t, err)
+
+		err = s.CreateClickEvent(slot.ID, banner.ID, group.ID, time.Now().Unix())
+		require.NoError(t, err)
+		err = s.CreateClickEvent(slot.ID, banner2.ID, group.ID, time.Now().Unix())
+		require.NoError(t, err)
+		err = s.CreateClickEvent(slot2.ID, banner.ID, group2.ID, time.Now().Unix())
+		require.NoError(t, err)
+
+		views, err := s.SlotClicks(slot.ID)
+		require.NoError(t, err)
+		require.Len(t, views, 2)
+
+		views2, err := s.SlotClicks(slot2.ID)
+		require.NoError(t, err)
+		require.Len(t, views2, 1)
+	})
+}

@@ -158,6 +158,75 @@ func (s *Storage) CreateClickEvent(slotID, bannerID, groupID, date int64) error 
 	return nil
 }
 
+func (s *Storage) NotViewedBanners(slotID int64) ([]storage.Banner, error) {
+	var b []storage.Banner
+	err := s.store.Select(
+		&b,
+		`SELECT *
+				FROM banners
+				WHERE id IN (
+					SELECT banner_id
+					FROM rotations
+					WHERE slot_id = $1
+						EXCEPT (SELECT banner_id FROM views WHERE slot_id = $1)
+				)`,
+		slotID,
+	)
+	if err != nil {
+		return b, fmt.Errorf("storage -> not viewed banners -> %w", err)
+	}
+
+	return b, nil
+}
+
+func (s *Storage) SlotBanners(slotID int64) ([]storage.Banner, error) {
+	var b []storage.Banner
+	err := s.store.Select(
+		&b,
+		`SELECT *
+				FROM banners
+				WHERE id IN (
+					SELECT banner_id
+					FROM rotations
+					WHERE slot_id = $1
+				)`,
+		slotID,
+	)
+	if err != nil {
+		return b, fmt.Errorf("storage -> slot banners -> %w", err)
+	}
+
+	return b, nil
+}
+
+func (s *Storage) SlotViews(slotID int64) ([]storage.ViewEvent, error) {
+	var v []storage.ViewEvent
+	err := s.store.Select(
+		&v,
+		`SELECT * FROM views WHERE slot_id= $1`,
+		slotID,
+	)
+	if err != nil {
+		return v, fmt.Errorf("storage -> slot views -> %w", err)
+	}
+
+	return v, nil
+}
+
+func (s *Storage) SlotClicks(slotID int64) ([]storage.ClickEvent, error) {
+	var v []storage.ClickEvent
+	err := s.store.Select(
+		&v,
+		`SELECT * FROM clicks WHERE slot_id= $1`,
+		slotID,
+	)
+	if err != nil {
+		return v, fmt.Errorf("storage -> slot clicks -> %w", err)
+	}
+
+	return v, nil
+}
+
 func (s *Storage) Exec(query string, args ...interface{}) (sql.Result, error) {
 	return s.store.Exec(query, args...)
 }

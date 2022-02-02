@@ -24,6 +24,7 @@ type App interface {
 type Rotator struct {
 	storage Storage
 	p       *rmq.Producer
+	b       Bandit
 }
 
 type Logger interface {
@@ -42,10 +43,23 @@ type Storage interface {
 	DeleteRotation(slotID, bannerID int64) error
 	CreateViewEvent(slotID, bannerID, groupID, date int64) error
 	CreateClickEvent(slotID, bannerID, groupID, date int64) error
+	NotViewedBanners(slotID int64) ([]storage.Banner, error)
+	SlotBanners(slotID int64) ([]storage.Banner, error)
+	SlotViews(slotID int64) ([]storage.ViewEvent, error)
+	SlotClicks(slotID int64) ([]storage.ClickEvent, error)
 }
 
-func NewApp(s Storage, producer *rmq.Producer) App {
-	return &Rotator{storage: s, p: producer}
+type Bandit interface {
+	RandomBanner(banners []storage.Banner) (storage.Banner, error)
+	TopRatedBanner(
+		banners []storage.Banner,
+		views []storage.ViewEvent,
+		clicks []storage.ClickEvent,
+	) (storage.Banner, error)
+}
+
+func NewApp(s Storage, producer *rmq.Producer, bandit Bandit) App {
+	return &Rotator{storage: s, p: producer, b: bandit}
 }
 
 func (r *Rotator) CreateSlot(description string) (storage.Slot, error) {
@@ -111,11 +125,43 @@ func (r *Rotator) CreateClickEvent(slotID, bannerID, groupID int64) error {
 }
 
 func (r *Rotator) BannerForSlot(slotID, groupID int64) (storage.Banner, error) {
-	bannerID := int64(0)
-	err := r.CreateViewEvent(slotID, bannerID, groupID)
+	notViewed, err := r.storage.NotViewedBanners(slotID)
+	if err != nil {
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+	}
+	if banner, err := r.b.RandomBanner(notViewed); err == nil && banner.ID > 0 {
+		err = r.CreateViewEvent(slotID, banner.ID, groupID)
+		if err != nil {
+			return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+		}
+
+		return banner, nil
+	}
+
+	banners, err := r.storage.SlotBanners(slotID)
 	if err != nil {
 		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
 	}
 
-	return storage.Banner{}, err
+	views, err := r.storage.SlotViews(slotID)
+	if err != nil {
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+	}
+
+	clicks, err := r.storage.SlotClicks(slotID)
+	if err != nil {
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+	}
+
+	banner, err := r.b.TopRatedBanner(banners, views, clicks)
+	if err != nil {
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+	}
+
+	err = r.CreateViewEvent(slotID, banner.ID, groupID)
+	if err != nil {
+		return storage.Banner{}, fmt.Errorf("rotator -> banner for slot -> %w", err)
+	}
+
+	return banner, err
 }

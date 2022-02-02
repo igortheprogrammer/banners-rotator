@@ -1,6 +1,7 @@
 package main
 
 import (
+	"banners-rotator/internal/bandit"
 	"banners-rotator/internal/config"
 	"banners-rotator/internal/logger"
 	"banners-rotator/internal/rmq"
@@ -64,7 +65,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	app := rotator.NewApp(s, p)
+	b := bandit.NewBandit()
+	app := rotator.NewApp(s, p, b)
 	srv := internalgrpc.NewRPCServer(logg, app, cfg.Api.Host, cfg.Api.Port)
 
 	go func() {
