@@ -3,6 +3,8 @@ version: '3'
 networks:
   postgres_test:
     driver: bridge
+  rabbit_test:
+    driver: bridge
 
 services:
   integration_tests:
@@ -10,7 +12,8 @@ services:
       context: ../
       dockerfile: ./deployment/test.Dockerfile
     environment:
-      TESTS_POSTGRES_DSN: 'host=postgres_test port=5432 user=postgres password=test dbname=postgres_test sslmode=disable'
+      TESTS_POSTGRES_DSN: host=postgres_test port=5432 user=postgres password=test dbname=postgres_test sslmode=disable
+      TESTS_ROTATOR_DSN: rotator_test:8080
       WAIT_HOSTS: postgres_test:5432
     networks:
       - postgres_test
@@ -32,3 +35,37 @@ services:
       - ../migrations/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - postgres_test
+
+  rabbit_test:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbit_test
+    container_name: rabbit_test
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    expose:
+      - 15672
+    restart: always
+    networks:
+      - rabbit_test
+
+  rotator_test:
+    build:
+      context: ../
+      dockerfile: ./deployment/Dockerfile
+      args:
+        - CONFIG_FILE_NAME=config.test
+    container_name: rotator_test
+    environment:
+      WAIT_HOSTS: postgres_test:5432, rabbit_test:5672
+    restart: on-failure
+    ports:
+      - "8080:8080"
+    expose:
+      - 8080
+    depends_on:
+      - postgres_test
+      - rabbit_test
+    networks:
+      - postgres_test
+      - rabbit_test
