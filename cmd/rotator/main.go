@@ -85,7 +85,7 @@ func main() {
 	defer cancel()
 }
 
-func getStorage(ctx context.Context, cfg config.AppConfig) (rotator.Storage, error) {
+func getStorage(ctx context.Context, cfg *config.AppConfig) (rotator.Storage, error) {
 	storage, err := sqlstorage.NewStorage(ctx, cfg.Storage.ConnectionString)
 	if err != nil {
 		return nil, fmt.Errorf("get storage -> %w", err)

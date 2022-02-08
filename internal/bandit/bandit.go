@@ -18,23 +18,23 @@ func NewBandit() rotator.Bandit {
 	return &Bandit{}
 }
 
-func (b *Bandit) RandomBanner(banners []storage.Banner) (storage.Banner, error) {
+func (b *Bandit) RandomBanner(banners []storage.Banner) (*storage.Banner, error) {
 	if len(banners) > 0 {
 		i := rand.Intn(len(banners))
-		return banners[i], nil
+		return &banners[i], nil
 	}
 
-	return storage.Banner{}, ErrEmptyBanners
+	return nil, ErrEmptyBanners
 }
 
 func (b *Bandit) TopRatedBanner(
 	banners []storage.Banner,
 	views []storage.ViewEvent,
 	clicks []storage.ClickEvent,
-) (storage.Banner, error) {
+) (*storage.Banner, error) {
 	cViews, cClicks, err := b.prepare(banners, views, clicks)
 	if err != nil {
-		return storage.Banner{}, err
+		return nil, err
 	}
 
 	scores := make(map[int64]scoresItem)
@@ -50,9 +50,7 @@ func (b *Bandit) TopRatedBanner(
 	}
 
 	top := b.topBanners(scores)
-	banner, err := b.RandomBanner(top)
-
-	return banner, err
+	return b.RandomBanner(top)
 }
 
 func (b Bandit) prepare(

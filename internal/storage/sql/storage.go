@@ -37,55 +37,55 @@ func (s *Storage) Close() error {
 	return s.store.Close()
 }
 
-func (s *Storage) CreateSlot(description string) (storage.Slot, error) {
+func (s *Storage) CreateSlot(description string) (*storage.Slot, error) {
 	r := s.store.QueryRowx(
 		"INSERT INTO slots (description) VALUES ($1) RETURNING id;",
 		description,
 	)
 	var id int64
 	if err := r.Scan(&id); err != nil {
-		return storage.Slot{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"storage -> create slot -> %w (%s)",
 			storage.ErrSlotNotCreated,
 			err,
 		)
 	}
 
-	return storage.Slot{ID: id, Description: description}, nil
+	return &storage.Slot{ID: id, Description: description}, nil
 }
 
-func (s *Storage) CreateBanner(description string) (storage.Banner, error) {
+func (s *Storage) CreateBanner(description string) (*storage.Banner, error) {
 	r := s.store.QueryRowx(
 		"INSERT INTO banners (description) VALUES ($1) RETURNING id;",
 		description,
 	)
 	var id int64
 	if err := r.Scan(&id); err != nil {
-		return storage.Banner{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"storage -> create banner -> %w (%s)",
 			storage.ErrBannerNotCreated,
 			err,
 		)
 	}
 
-	return storage.Banner{ID: id, Description: description}, nil
+	return &storage.Banner{ID: id, Description: description}, nil
 }
 
-func (s *Storage) CreateGroup(description string) (storage.Group, error) {
+func (s *Storage) CreateGroup(description string) (*storage.Group, error) {
 	r := s.store.QueryRowx(
 		"INSERT INTO groups (description) VALUES ($1) RETURNING id;",
 		description,
 	)
 	var id int64
 	if err := r.Scan(&id); err != nil {
-		return storage.Group{}, fmt.Errorf(
+		return nil, fmt.Errorf(
 			"storage -> create group -> %w (%s)",
 			storage.ErrGroupNotCreated,
 			err,
 		)
 	}
 
-	return storage.Group{ID: id, Description: description}, nil
+	return &storage.Group{ID: id, Description: description}, nil
 }
 
 func (s *Storage) CreateRotation(slotID, bannerID int64) error {
@@ -158,7 +158,7 @@ func (s *Storage) CreateClickEvent(slotID, bannerID, groupID, date int64) error 
 	return nil
 }
 
-func (s *Storage) NotViewedBanners(slotID int64) ([]storage.Banner, error) {
+func (s *Storage) NotViewedBanners(slotID int64) (*[]storage.Banner, error) {
 	var b []storage.Banner
 	err := s.store.Select(
 		&b,
@@ -173,13 +173,13 @@ func (s *Storage) NotViewedBanners(slotID int64) ([]storage.Banner, error) {
 		slotID,
 	)
 	if err != nil {
-		return b, fmt.Errorf("storage -> not viewed banners -> %w", err)
+		return nil, fmt.Errorf("storage -> not viewed banners -> %w", err)
 	}
 
-	return b, nil
+	return &b, nil
 }
 
-func (s *Storage) SlotBanners(slotID int64) ([]storage.Banner, error) {
+func (s *Storage) SlotBanners(slotID int64) (*[]storage.Banner, error) {
 	var b []storage.Banner
 	err := s.store.Select(
 		&b,
@@ -193,38 +193,38 @@ func (s *Storage) SlotBanners(slotID int64) ([]storage.Banner, error) {
 		slotID,
 	)
 	if err != nil {
-		return b, fmt.Errorf("storage -> slot banners -> %w", err)
+		return nil, fmt.Errorf("storage -> slot banners -> %w", err)
 	}
 
-	return b, nil
+	return &b, nil
 }
 
-func (s *Storage) SlotViews(slotID int64) ([]storage.ViewEvent, error) {
-	var v []storage.ViewEvent
+func (s *Storage) SlotViews(slotID int64) (*[]storage.ViewEvent, error) {
+	var ve []storage.ViewEvent
 	err := s.store.Select(
-		&v,
+		&ve,
 		`SELECT * FROM views WHERE slot_id= $1`,
 		slotID,
 	)
 	if err != nil {
-		return v, fmt.Errorf("storage -> slot views -> %w", err)
+		return nil, fmt.Errorf("storage -> slot views -> %w", err)
 	}
 
-	return v, nil
+	return &ve, nil
 }
 
-func (s *Storage) SlotClicks(slotID int64) ([]storage.ClickEvent, error) {
-	var v []storage.ClickEvent
+func (s *Storage) SlotClicks(slotID int64) (*[]storage.ClickEvent, error) {
+	var ce []storage.ClickEvent
 	err := s.store.Select(
-		&v,
+		&ce,
 		`SELECT * FROM clicks WHERE slot_id= $1`,
 		slotID,
 	)
 	if err != nil {
-		return v, fmt.Errorf("storage -> slot clicks -> %w", err)
+		return nil, fmt.Errorf("storage -> slot clicks -> %w", err)
 	}
 
-	return v, nil
+	return &ce, nil
 }
 
 func (s *Storage) Exec(query string, args ...interface{}) (sql.Result, error) {

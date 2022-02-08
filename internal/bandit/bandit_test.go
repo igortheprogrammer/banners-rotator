@@ -24,7 +24,7 @@ func TestBandit_RandomBanner(t *testing.T) {
 		banners := getBanners(0)
 		result, err := bnd.RandomBanner(banners)
 		require.ErrorIs(t, err, ErrEmptyBanners, "actual error is %s", err)
-		require.Equal(t, result.ID, int64(0))
+		require.Nil(t, result)
 	})
 }
 

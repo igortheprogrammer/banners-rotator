@@ -250,7 +250,7 @@ func TestStorage_NotViewedBanners(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"id", "description"}).AddRow(1, "test 1"))
 		banners, err := s.NotViewedBanners(1)
 		require.NoError(t, err)
-		require.Len(t, banners, 1)
+		require.Len(t, *banners, 1)
 	})
 
 	if err = mock.ExpectationsWereMet(); err != nil {
@@ -281,7 +281,7 @@ func TestStorage_SlotBanners(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows([]string{"id", "description"}).AddRow(1, "test 1"))
 		banners, err := s.SlotBanners(1)
 		require.NoError(t, err)
-		require.Len(t, banners, 1)
+		require.Len(t, *banners, 1)
 	})
 
 	if err = mock.ExpectationsWereMet(); err != nil {
@@ -310,7 +310,7 @@ func TestStorage_SlotViews(t *testing.T) {
 			)
 		views, err := s.SlotViews(1)
 		require.NoError(t, err)
-		require.Len(t, views, 1)
+		require.Len(t, *views, 1)
 	})
 
 	if err = mock.ExpectationsWereMet(); err != nil {
@@ -339,7 +339,7 @@ func TestStorage_SlotClicks(t *testing.T) {
 			)
 		views, err := s.SlotClicks(1)
 		require.NoError(t, err)
-		require.Len(t, views, 1)
+		require.Len(t, *views, 1)
 	})
 
 	if err = mock.ExpectationsWereMet(); err != nil {

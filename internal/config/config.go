@@ -41,7 +41,7 @@ func init() {
 	viper.SetDefault("logger.level", "info")
 }
 
-func NewAppConfig(path string) (AppConfig, error) {
+func NewAppConfig(path string) (*AppConfig, error) {
 	dir, file := filepath.Split(path)
 	name := strings.TrimSuffix(filepath.Base(file), filepath.Ext(file))
 
@@ -50,13 +50,13 @@ func NewAppConfig(path string) (AppConfig, error) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		return AppConfig{}, fmt.Errorf("%w: %v", ErrUnreadableConfig, err)
+		return nil, fmt.Errorf("%w: %v", ErrUnreadableConfig, err)
 	}
 
-	cfg := AppConfig{}
+	var cfg AppConfig
 	if err := viper.Unmarshal(&cfg); err != nil {
-		return AppConfig{}, fmt.Errorf("config unmarshalling: %w", err)
+		return nil, fmt.Errorf("config unmarshalling: %w", err)
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }

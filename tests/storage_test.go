@@ -270,7 +270,7 @@ func TestStorage_NotViewedBanners(t *testing.T) {
 
 		banners, err := s.NotViewedBanners(slot.ID)
 		require.NoError(t, err)
-		require.Len(t, banners, 0)
+		require.Len(t, *banners, 0)
 
 		banner2, err := s.CreateBanner(desc)
 		require.NoError(t, err)
@@ -279,8 +279,8 @@ func TestStorage_NotViewedBanners(t *testing.T) {
 
 		banners, err = s.NotViewedBanners(slot.ID)
 		require.NoError(t, err)
-		require.Len(t, banners, 1)
-		require.Equal(t, banner2.ID, banners[0].ID)
+		require.Len(t, *banners, 1)
+		require.Equal(t, banner2.ID, (*banners)[0].ID)
 	})
 }
 
@@ -313,11 +313,11 @@ func TestStorage_SlotBanners(t *testing.T) {
 
 		banners, err := s.SlotBanners(slot.ID)
 		require.NoError(t, err)
-		require.Len(t, banners, 2)
+		require.Len(t, *banners, 2)
 
 		banners2, err := s.SlotBanners(slot2.ID)
 		require.NoError(t, err)
-		require.Len(t, banners2, 1)
+		require.Len(t, *banners2, 1)
 	})
 }
 
@@ -355,11 +355,11 @@ func TestStorage_SlotViews(t *testing.T) {
 
 		views, err := s.SlotViews(slot.ID)
 		require.NoError(t, err)
-		require.Len(t, views, 2)
+		require.Len(t, *views, 2)
 
 		views2, err := s.SlotViews(slot2.ID)
 		require.NoError(t, err)
-		require.Len(t, views2, 1)
+		require.Len(t, *views2, 1)
 	})
 }
 
@@ -397,10 +397,10 @@ func TestStorage_SlotClicks(t *testing.T) {
 
 		views, err := s.SlotClicks(slot.ID)
 		require.NoError(t, err)
-		require.Len(t, views, 2)
+		require.Len(t, *views, 2)
 
 		views2, err := s.SlotClicks(slot2.ID)
 		require.NoError(t, err)
-		require.Len(t, views2, 1)
+		require.Len(t, *views2, 1)
 	})
 }
