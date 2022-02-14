@@ -1,0 +1,11 @@
+logger:
+  level: info
+api:
+  host: 0.0.0.0
+  port: 8080
+storage:
+  type: sql
+  connectionString: host=postgres port=5432 user=postgres password=qwerty dbname=rotator sslmode=disable
+rmq:
+  uri: amqp://guest:guest@rabbit:5672/
+  name: events
