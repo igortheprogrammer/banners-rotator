@@ -1,6 +1,5 @@
 # Banners rotator - [сервис ротации баннеров](https://github.com/OtusGolang/final_project/blob/master/02-banners-rotation.md)
 
-![](https://goreportcard.com/badge/github.com/igortheprogrammer/banners-rotator)
 
 Сервис "Ротатор баннеров" предназначен для выбора наиболее эффективных (кликабельных) баннеров, в условиях меняющихся
 предпочтений пользователей и набора баннеров.
